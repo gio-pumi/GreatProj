@@ -26,27 +26,15 @@ namespace GreatProj.Controllers
 
         }
 
-
-
         [HttpPost]
         public async Task<List<ClientDTO>> AddClient(ClientDTO clientDTO)
         {
             var client = _mapper.Map<Client>(clientDTO);
-            var user = await _userService.CheckUserExistForClient(client);
 
-            if (user != null)
-            {
-                client.User = user;
+            var clients = await _userService.AddClient(client);
+            var clientsDTO = _mapper.Map<List<ClientDTO>>(clients);
 
-                var clients = await _clientRepository.AddAsync(client);
-                var clientsDTO = _mapper.Map<List<ClientDTO>>(clients);
-
-                return clientsDTO;
-            }
-            else
-            {
-                throw new Exception();
-            }
+            return clientsDTO;
         }
 
         [HttpGet]
@@ -78,8 +66,13 @@ namespace GreatProj.Controllers
         [HttpPut]
         public async Task<List<ClientUpdateDTO>> UpdateClient(ClientUpdateDTO clientDTO)
         {
-            var client = await _clientRepository.SingleOrDefaultAsync(x => x.Id == clientDTO.Id, Entity => Entity.User);
+
+            var client = await _clientRepository.GetByIdAsync(clientDTO.Id);
+            var user = await _userRepository.GetByIdAsync(client.UserId);
+
             client = _mapper.Map<Client>(clientDTO);
+            client.UserId = user.Id;
+            client.User = user;
 
             var clients = await _clientRepository.UpdateAsync(client);
 

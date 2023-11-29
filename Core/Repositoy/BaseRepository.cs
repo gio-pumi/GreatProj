@@ -1,7 +1,6 @@
 ﻿using GreatProj.Core.Interfaces;
 using GreatProj.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
 
 namespace GreatProj.Core.Repositoy
 {
@@ -37,32 +36,16 @@ namespace GreatProj.Core.Repositoy
 
         public virtual async Task<T> GetByIdAsync(long id)
         {
-            return await _db.Set<T>().FindAsync(id);
+            T item = await _db.Set<T>().FindAsync(id);
+            return item;
 
         }
 
-        public async Task<T> SingleOrDefaultAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includeProperties)
-        {
-            var query = _db.Set<T>().AsNoTracking();
-
-            foreach (var property in includeProperties)
-                query = query.Include(property);
-
-            return await query.SingleOrDefaultAsync(predicate);
-        }
-
-        public virtual async Task<List<T>> UpdateAsync (T item)
+        public virtual async Task<List<T>> UpdateAsync(T item)
         {
             _db.Set<T>().Update(item);
-            try
-            {
-                await _db.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
+            await _db.SaveChangesAsync();
 
-                throw;
-            }
             var items = await _db.Set<T>().ToListAsync();
             return items;
         }

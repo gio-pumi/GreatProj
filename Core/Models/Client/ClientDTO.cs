@@ -1,5 +1,4 @@
-﻿using GreatProj.Domain.Entities;
-using GreatProj.Models;
+﻿using GreatProj.Models;
 
 namespace GreatProj.Core.Models.ClientDTO
 {

@@ -1,85 +1,63 @@
 ﻿using GreatProj.Core.Interfaces;
-using GreatProj.Core.Repositoy;
+using GreatProj.Core.Repository_Interfaces;
 using GreatProj.Domain.Entities;
 using GreatProj.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
 
 namespace GreatProj.Core.Services
 {
     public class UserService : IUserService
     {
         private readonly AppDbContext _db;
+        private readonly IClientRepository<Client> _clientRepository;
+        private readonly IEmployeeRepository<Employee> _employeeRepository;
 
-        public UserService(AppDbContext context)
+        public UserService(IClientRepository<Client> clientRepository, IEmployeeRepository<Employee> employeeRepository ,AppDbContext context)
         {
+            _clientRepository = clientRepository;
+            _employeeRepository = employeeRepository;
             _db = context;
+
         }
 
-        public async Task<User> CheckUserExistForClient(Client client)
+        public async Task<List<Client>> AddClient(Client client)
         {
-            if (client.User == null)
+            if (await _db.Clients.Include(c => c.User).AnyAsync(c => c.User.PersonalNumber == client.User.PersonalNumber))
             {
-                throw new Exception();
+                throw new Exception("Client With Same User Already Exist");
             }
-            else if (_db.Users.Any(c => c.PersonalNumber == client.User.PersonalNumber && c.Id == client.User.Id))
+
+            var user = await _db.Users.FirstOrDefaultAsync(c => c.PersonalNumber == client.User.PersonalNumber);
+            if (user != null)
             {
-                if (_db.Clients.Any(c => c.User.PersonalNumber == client.User.PersonalNumber))
-                {
-                    throw new Exception("Client with same user Already Exist");
-                }
-                else
-                {
-                    var user = await _db.Users.FirstOrDefaultAsync(c => c.PersonalNumber == client.User.PersonalNumber && c.Id == client.User.Id);
-                    return user;
-                }
+                client.UserId = user.Id;
+                client.User = null;
             }
-            else
-            {
-                if(_db.Users.Any(c => c.Id == client.User.Id || c.PersonalNumber == client.User.PersonalNumber))
-                {
-                    throw new Exception("User with this  Id or Personal Number already exist");
-                }
-                else
-                {
-                    client.User.Id = 0;
-                    var clientUser = client.User;
-                    return clientUser;
-                }
-            }
+
+            var clients = await _clientRepository.AddAsync(client);
+
+            return clients;
         }
 
-        public async Task<User> CheckUserExistForEmployee(Employee employee)
+
+        public async Task<List<Employee>> AddEmployee(Employee employee)
         {
-            if (employee.User == null)
+
+            if (await _db.Employees.Include(e => e.User).AnyAsync(c => c.User.PersonalNumber == employee.User.PersonalNumber))
             {
-                throw new Exception();
+                throw new Exception("Employee With Same User Already Exist");
             }
-            else if (_db.Users.Any(c => c.PersonalNumber == employee.User.PersonalNumber && c.Id == employee.User.Id))
+
+            var user = await _db.Users.FirstOrDefaultAsync(c => c.PersonalNumber == employee.User.PersonalNumber);
+            if (user != null)
             {
-                if (_db.Employees.Any(c => c.User.PersonalNumber == employee.User.PersonalNumber))
-                {
-                    throw new Exception("Employee Already Exist");
-                }
-                else
-                {
-                    var user = await _db.Users.FirstOrDefaultAsync(c => c.PersonalNumber == employee.User.PersonalNumber && c.Id == employee.User.Id);
-                    return user;
-                }
+                employee.UserId = user.Id;
+                employee.User = null;
             }
-            else
-            {
-                if (_db.Users.Any(c => c.Id == employee.User.Id || c.PersonalNumber == employee.User.PersonalNumber))
-                {
-                    throw new Exception("User with this  Id or Personal Number already exist");
-                }
-                else
-                {
-                    employee.User.Id = 0;
-                    var clientUser = employee.User;
-                    return clientUser;
-                }
-            }
+
+            var employees = await _employeeRepository.AddAsync(employee);
+
+            return employees;
         }
     }
 }

@@ -3,12 +3,9 @@ using GreatProj.Core.Interfaces;
 using GreatProj.Core.Repository_Interfaces;
 using GreatProj.Core.Repositoy;
 using GreatProj.Core.Services;
-using GreatProj.Domain;
 using GreatProj.Domain.Entities;
 using GreatProj.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using System;
 
 namespace GreatProj
 {
@@ -19,7 +16,11 @@ namespace GreatProj
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-            builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DBConnection")));
+            builder.Services.AddDbContext<AppDbContext>(options =>
+            {
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DBConnection"));
+                options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+             });
 
             builder.Services.AddControllers();
 

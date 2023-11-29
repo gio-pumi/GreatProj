@@ -1,10 +1,11 @@
 ﻿using GreatProj.Domain.Entities;
+using GreatProj.Models;
 
-namespace GreatProj.Models
+namespace GreatProj.Core.Models.Employee
 {
     public class EmployeeDTO
     {
-        public User User { get; set; }
+        public UserDTO User { get; set; }
         public string Role { get; set; }
     }
 }
