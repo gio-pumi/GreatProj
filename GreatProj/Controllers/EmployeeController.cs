@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using GreatProj.Core.Interfaces;
+using GreatProj.Core.Models.Client;
 using GreatProj.Core.Models.Employee;
+using GreatProj.Core.Models.Paging;
 using GreatProj.Core.Repository_Interfaces;
 using GreatProj.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -28,7 +30,7 @@ namespace GreatProj.Controllers
         [HttpPost]
         public async Task<List<EmployeeDTO>> AddClient(EmployeeDTO employeeDTO)
         {
-            var employee= _mapper.Map<Employee>(employeeDTO);
+            var employee = _mapper.Map<Employee>(employeeDTO);
 
             var employyees = await _userService.AddEmployee(employee);
             var employyeesDTO = _mapper.Map<List<EmployeeDTO>>(employyees);
@@ -37,16 +39,21 @@ namespace GreatProj.Controllers
         }
 
         [HttpGet]
-        public async Task<List<EmployeeDTO>> GetAllClients()
+        public async Task<PagedResultDTO<EmployeeDTO>> GetAllEmployees([FromQuery] GetAllEmployeeInput input)
         {
-            var employees = await _employeeRepository.GetAllAsync();
+            var employees = await _employeeRepository.GetAllEmployeeAsync(input);
             var employeesDTO = _mapper.Map<List<EmployeeDTO>>(employees);
-            return employeesDTO;
+
+            var result = new PagedResultDTO<EmployeeDTO>();
+            result.Count = employeesDTO.Count;
+            result.Items = employeesDTO;
+
+            return result;
         }
 
         [HttpGet]
         [Route("id")]
-        public async Task<EmployeeDTO> GetClientById(long id)
+        public async Task<EmployeeDTO> GetEmployeeById(long id)
         {
             var employee = await _employeeRepository.GetByIdAsync(id);
             var employeeDTO = _mapper.Map<EmployeeDTO>(employee);
@@ -55,7 +62,7 @@ namespace GreatProj.Controllers
 
         [HttpDelete]
 
-        public async Task<List<EmployeeDTO>> DeleteClient(long id)
+        public async Task<List<EmployeeDTO>> DeleteEmployee(long id)
         {
             var employee = await _employeeRepository.DeleteAsync(id);
             var employeesDTO = _mapper.Map<List<EmployeeDTO>>(employee);

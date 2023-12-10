@@ -4,7 +4,6 @@ namespace GreatProj.Core.Interfaces
 {
     public interface IUserService
     {
-        //Task<User> CheckUserExistForClient(Client client);
         Task<List<Client>> AddClient(Client client);
         Task<List<Employee>> AddEmployee(Employee employee);
     }

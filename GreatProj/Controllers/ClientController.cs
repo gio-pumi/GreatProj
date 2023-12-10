@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using GreatProj.Core.Interfaces;
+using GreatProj.Core.Models.Client;
 using GreatProj.Core.Models.ClientDTO;
+using GreatProj.Core.Models.Paging;
 using GreatProj.Core.Repository_Interfaces;
 using GreatProj.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -38,11 +40,16 @@ namespace GreatProj.Controllers
         }
 
         [HttpGet]
-        public async Task<List<ClientDTO>> GetAllClients()
+        public async Task<PagedResultDTO<ClientDTO>> GetAllClients ([FromQuery] GetAllClientInput input)
         {
-            var clients = await _clientRepository.GetAllAsync();
+            var clients = await _clientRepository.GetAllClientAsync(input);
             var clientsDTO = _mapper.Map<List<ClientDTO>>(clients);
-            return clientsDTO;
+
+            var result = new PagedResultDTO<ClientDTO>();
+            result.Count = clientsDTO.Count;
+            result.Items = clientsDTO;
+
+            return result;
         }
 
         [HttpGet]
