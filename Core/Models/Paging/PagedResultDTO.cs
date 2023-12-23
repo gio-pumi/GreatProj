@@ -2,7 +2,7 @@
 {
     public class PagedResultDTO<T> : IPagedResult<T>
     {
-        public  IReadOnlyList<T> Items { get; set; }
+        public IReadOnlyList<T>? Items { get; set; }
         public int Count { get; set; }
     }
 }

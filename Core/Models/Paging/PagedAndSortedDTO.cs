@@ -3,8 +3,6 @@
     public class PagedAndSortedDTO : PagedDTO
     {
         public string? Sorting { get; set; }
-        public bool isAscending { get; set; }
-
-        
+        public bool IsAscending { get; set; }
     }
 }

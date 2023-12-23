@@ -6,7 +6,6 @@ namespace GreatProj.Core.Interfaces
 {
     public interface IBaseRepository<T> where T : class
     {
-
         Task<List<T>> AddAsync(T item);
         Task<List<Client>> GetAllClientAsync(GetAllClientInput input);
         Task<List<Employee>> GetAllEmployeeAsync(GetAllEmployeeInput input); 

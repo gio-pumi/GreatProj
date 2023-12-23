@@ -7,6 +7,5 @@
         public string Number { get; set; }
         public string PersonalNumber { get; set; }
         public DateTime CreateDate { get; set; } = DateTime.Now;
-
     }
 }

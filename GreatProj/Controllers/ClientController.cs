@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GreatProj.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[action]")]
     [ApiController]
     public class ClientController : ControllerBase
     {
@@ -18,8 +18,11 @@ namespace GreatProj.Controllers
         private readonly IMapper _mapper;
         private readonly IUserService _userService;
 
-
-        public ClientController(IClientRepository<Client> clientRepository, IUserRepository<User> userRepository, IMapper mapper, IUserService userService)
+        public ClientController(
+            IClientRepository<Client> clientRepository, 
+            IUserRepository<User> userRepository, 
+            IMapper mapper, 
+            IUserService userService)
         {
             _clientRepository = clientRepository;
             _userRepository = userRepository;
@@ -32,10 +35,8 @@ namespace GreatProj.Controllers
         public async Task<List<ClientDTO>> AddClient(ClientDTO clientDTO)
         {
             var client = _mapper.Map<Client>(clientDTO);
-
             var clients = await _userService.AddClient(client);
             var clientsDTO = _mapper.Map<List<ClientDTO>>(clients);
-
             return clientsDTO;
         }
 
@@ -44,16 +45,15 @@ namespace GreatProj.Controllers
         {
             var clients = await _clientRepository.GetAllClientAsync(input);
             var clientsDTO = _mapper.Map<List<ClientDTO>>(clients);
-
-            var result = new PagedResultDTO<ClientDTO>();
-            result.Count = clientsDTO.Count;
-            result.Items = clientsDTO;
-
+            var result = new PagedResultDTO<ClientDTO>
+            {
+                Count = clientsDTO.Count,
+                Items = clientsDTO
+            };
             return result;
         }
 
         [HttpGet]
-        [Route("id")]
         public async Task<ClientDTO> GetClientById(long id)
         {
             var client = await _clientRepository.GetByIdAsync(id);
@@ -73,19 +73,14 @@ namespace GreatProj.Controllers
         [HttpPut]
         public async Task<List<ClientUpdateDTO>> UpdateClient(ClientUpdateDTO clientDTO)
         {
-
             var client = await _clientRepository.GetByIdAsync(clientDTO.Id);
             var user = await _userRepository.GetByIdAsync(client.UserId);
-
             client = _mapper.Map<Client>(clientDTO);
             client.UserId = user.Id;
             client.User = user;
-
             var clients = await _clientRepository.UpdateAsync(client);
-
             var clientsDTO = _mapper.Map<List<ClientUpdateDTO>>(clients);
             return clientsDTO;
-
         }
     }
 }

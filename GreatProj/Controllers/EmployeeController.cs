@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using GreatProj.Core.Interfaces;
-using GreatProj.Core.Models.Client;
+using GreatProj.Core.Models.ClientDTO;
 using GreatProj.Core.Models.Employee;
 using GreatProj.Core.Models.Paging;
 using GreatProj.Core.Repository_Interfaces;
@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GreatProj.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[action]")]
     [ApiController]
     public class EmployeeController : ControllerBase
     {
@@ -18,7 +18,11 @@ namespace GreatProj.Controllers
         private readonly IMapper _mapper;
         private readonly IUserService _userService;
 
-        public EmployeeController(IEmployeeRepository<Employee> employeeRepository, IMapper mapper, IUserService userService, IUserRepository<User> userRepository)
+        public EmployeeController(  
+            IEmployeeRepository<Employee> employeeRepository, 
+            IMapper mapper, 
+            IUserService userService, 
+            IUserRepository<User> userRepository)
         {
             _employeeRepository = employeeRepository;
             _mapper = mapper;
@@ -26,16 +30,13 @@ namespace GreatProj.Controllers
             _userRepository = userRepository;
         }
 
-
         [HttpPost]
         public async Task<List<EmployeeDTO>> AddClient(EmployeeDTO employeeDTO)
         {
             var employee = _mapper.Map<Employee>(employeeDTO);
-
-            var employyees = await _userService.AddEmployee(employee);
-            var employyeesDTO = _mapper.Map<List<EmployeeDTO>>(employyees);
-
-            return employyeesDTO;
+            var employees = await _userService.AddEmployee(employee);
+            var employeesDTO = _mapper.Map<List<EmployeeDTO>>(employees);
+            return employeesDTO;
         }
 
         [HttpGet]
@@ -43,16 +44,15 @@ namespace GreatProj.Controllers
         {
             var employees = await _employeeRepository.GetAllEmployeeAsync(input);
             var employeesDTO = _mapper.Map<List<EmployeeDTO>>(employees);
-
-            var result = new PagedResultDTO<EmployeeDTO>();
-            result.Count = employeesDTO.Count;
-            result.Items = employeesDTO;
-
+            var result = new PagedResultDTO<EmployeeDTO>
+            {
+                Count = employeesDTO.Count,
+                Items = employeesDTO
+            };
             return result;
         }
 
         [HttpGet]
-        [Route("id")]
         public async Task<EmployeeDTO> GetEmployeeById(long id)
         {
             var employee = await _employeeRepository.GetByIdAsync(id);
@@ -61,7 +61,6 @@ namespace GreatProj.Controllers
         }
 
         [HttpDelete]
-
         public async Task<List<EmployeeDTO>> DeleteEmployee(long id)
         {
             var employee = await _employeeRepository.DeleteAsync(id);
@@ -72,19 +71,13 @@ namespace GreatProj.Controllers
         [HttpPut]
         public async Task<List<EmployeeUpdateDTO>> UpdateEmployee(EmployeeUpdateDTO employeeDTO)
         {
-
             var employee = await _employeeRepository.GetByIdAsync(employeeDTO.Id);
             var user = await _userRepository.GetByIdAsync(employee.UserId);
-
             employee = _mapper.Map<Employee>(employeeDTO);
             employee.UserId = user.Id;
-            employee.User = null;
-
             var employees = await _employeeRepository.UpdateAsync(employee);
-
             var employeesDTO = _mapper.Map<List<EmployeeUpdateDTO>>(employees);
             return employeesDTO;
-
         }
     }
 }
