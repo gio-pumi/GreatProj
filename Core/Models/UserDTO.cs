@@ -4,6 +4,7 @@ namespace GreatProj.Models
 {
     public class UserDTO
     {
+        public long Id  { get; set; }
         [Required]
         [EmailAddress]
         public string Mail { get; set; }

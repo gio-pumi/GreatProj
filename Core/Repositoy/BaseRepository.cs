@@ -1,8 +1,12 @@
 ﻿using GreatProj.Core.Interfaces;
 using GreatProj.Core.Models.Client;
+using GreatProj.Core.Models.ClientDTO;
+using GreatProj.Core.Models.Country;
 using GreatProj.Core.Models.Employee;
-using GreatProj.Domain.Entities;
+using GreatProj.Core.Models.Translation;
+using GreatProj.Domain.DbEntities;
 using GreatProj.Infrastructure.Data;
+using GreatProj.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
@@ -30,84 +34,114 @@ namespace GreatProj.Core.Repositoy
             var items = await _db.Set<T>().ToListAsync();
             return items;
         }
-        public virtual async Task<List<Client>> GetAllClientAsync(GetAllClientInput input)
+        public virtual async Task<List<ClientDTO>> GetAllClientAsync(GetAllClientInput input)
         {
             //Filtering according input
-            IQueryable<Client> query = _db.Set<Client>().Include(u => u.User);
-            if(input.PersonalNumber != null || 
-                input.Mail != null|| 
-                input.Number != null||
-                input.RoomNumber != null||
-                input.Balance != null||
-                input.StartDate != null ||
-                input.EndDate != null )
-            {
-                query = query.Where(item =>
-                                    item.User.PersonalNumber.Contains(input.PersonalNumber) ||
-                                    item.User.Mail.Contains(input.Mail) ||
-                                    item.User.Number.Contains(input.Number) ||
-                                    (item.User.CreateDate >= input.StartDate && item.User.CreateDate <= input.EndDate) ||
-                                    item.RoomNumber.Contains(input.RoomNumber) ||
-                                    item.Balance == input.Balance);
-            }
+            IQueryable<Client> clientQuery = _db.Set<Client>().Include(u => u.User);
+            var mappedClientQuery = from client in clientQuery
+                                    select new ClientDTO
+                                    {
+                                        Id = client.Id,
+                                        Balance = client.Balance,
+                                        RoomNumber = client.RoomNumber,
+                                        Country = new CountryDTO
+                                        {
+                                            Id = client.Country.Id,
+                                            Code = client.Country.Code,
+                                            Name = client.Country.Name,
+                                            Translation = new TranslationDTO
+                                            {
+                                                Id = client.Country.Translation.Id,
+                                                Name = client.Country.Translation.Name,
+                                                Description = client.Country.Translation.Description
+                                            }
+                                        },
+                                        User = new UserDTO
+                                        {
+                                            Id = client.User.Id,
+                                            Mail = client.User.Mail,
+                                            Number = client.User.Number,
+                                            PersonalNumber = client.User.PersonalNumber
+                                        }
+                                    };
+            if (input.PersonalNumber != null)
+                mappedClientQuery = mappedClientQuery.Where(item => item.User.PersonalNumber.Contains(input.PersonalNumber));
+            if (input.Mail != null)
+                mappedClientQuery = mappedClientQuery.Where(item => item.User.Mail.Contains(input.Mail));
+            if (input.Number != null)
+                mappedClientQuery = mappedClientQuery.Where(item => item.User.Number.Contains(input.Number));
+            if (input.RoomNumber != null)
+                mappedClientQuery = mappedClientQuery.Where(item => item.RoomNumber.Contains(input.RoomNumber));
+            if (input.Balance != null)
+                mappedClientQuery = mappedClientQuery.Where(item => item.Balance == input.Balance);
+            if (input.Language != null)
+                mappedClientQuery = mappedClientQuery.Where(item => item.Country.Translation.Name == input.Language);
+            if (input.StartDate != null)
+                mappedClientQuery = mappedClientQuery.Where(item => item.User.CreateDate >= input.StartDate);
+            if (input.EndDate != null)
+                mappedClientQuery = mappedClientQuery.Where(item => item.User.CreateDate <= input.EndDate);
             //Sorting
             if (input.Sorting != null)
             {
-                Expression<Func<Client, object>> keySelector = input.Sorting?.ToLower() switch
+                Expression<Func<ClientDTO, object>> keySelector = input.Sorting?.ToLower() switch
                 {
-                    "roomnumber" => client => client.RoomNumber,
-                    "balance" => client => client.Balance,
+                    "personalNumber" => client => client.User.PersonalNumber,
                     "mail" => client => client.User.Mail,
                     "number" => client => client.User.Number,
-                    "personalNumber" => client => client.User.PersonalNumber,
+                    "roomnumber" => client => client.RoomNumber,
+                    "balance" => client => client.Balance,
                     _ => throw new NotImplementedException()
                 };
                 if (!input.IsAscending)
-                    query = query.OrderByDescending(keySelector);
+                    mappedClientQuery = mappedClientQuery.OrderByDescending(keySelector);
                 else
-                    query = query.OrderBy(keySelector);
+                    mappedClientQuery = mappedClientQuery.OrderBy(keySelector);
             }
-            List<Client> result = await query.ToListAsync();
+            List<ClientDTO> result = await mappedClientQuery.ToListAsync();
             //Pagination
             result = Pagination(result, input.SkipCount, input.MaxResultCount);
             return result;
         }
-        public virtual async Task<List<Employee>> GetAllEmployeeAsync(GetAllEmployeeInput input)
+        public virtual async Task<List<EmployeeDTO>> GetAllEmployeeAsync(GetAllEmployeeInput input)
         {
             //Filtering according input
             IQueryable<Employee> employeeQuery = _db.Set<Employee>();
             IQueryable<User> userQuery = _db.Set<User>();
-            var employeeAndUserJoinQuery = (from emp in employeeQuery
-                             join user in userQuery 
-                             on emp.UserId equals user.Id
-                             select new Employee
-                             {
-                                Id = emp.Id,
-                                Role = emp.Role,
-                                User = user
-                             });
-            if (input.PersonalNumber != null ||
-                input.Mail != null ||
-                input.Number != null ||
-                input.Role != null ||
-                input.StartDate != null ||
-                input.EndDate != null)
-            {
-                employeeAndUserJoinQuery =  employeeAndUserJoinQuery.Where(item =>
-                                                                           item.User.PersonalNumber.Contains(input.PersonalNumber) ||
-                                                                           item.User.Mail.Contains(input.Mail) ||
-                                                                           item.User.Number.Contains(input.Number) ||
-                                                                           item.Role.Contains(input.Role) ||
-                                                                           (item.User.CreateDate >= input.StartDate && item.User.CreateDate <= input.EndDate));
-            }
+            var employeeAndUserJoinQuery = from emp in employeeQuery
+                                           join user in userQuery
+                                           on emp.UserId equals user.Id
+                                           select new EmployeeDTO
+                                           {
+                                               Id = emp.Id,
+                                               Role = emp.Role,
+                                               User = new UserDTO
+                                               {
+                                                   Id = user.Id,
+                                                   Mail = user.Mail,
+                                                   Number = user.Number,
+                                                   PersonalNumber = user.PersonalNumber,
+                                               }
+                                           };
+            if (input.PersonalNumber != null)
+                employeeAndUserJoinQuery = employeeAndUserJoinQuery.Where(item => item.User.PersonalNumber.Contains(input.PersonalNumber));
+            if (input.Mail != null)
+                employeeAndUserJoinQuery = employeeAndUserJoinQuery.Where(item => item.User.Mail.Contains(input.Mail));
+            if (input.Number != null)
+                employeeAndUserJoinQuery = employeeAndUserJoinQuery.Where(item => item.User.Number.Contains(input.Number));
+            if (input.Role != null)
+                employeeAndUserJoinQuery = employeeAndUserJoinQuery.Where(item => item.Role.Contains(input.Role));
+            if (input.StartDate != null)
+                employeeAndUserJoinQuery = employeeAndUserJoinQuery.Where(item => item.User.CreateDate >= input.StartDate);
+            if (input.EndDate != null)
+                employeeAndUserJoinQuery = employeeAndUserJoinQuery.Where(item => item.User.CreateDate <= input.EndDate);
             //Sorting
             if (input.Sorting != null)
             {
-                Expression<Func<Employee, object>> keySelector = input.Sorting?.ToLower() switch
+                Expression<Func<EmployeeDTO, object>> keySelector = input.Sorting?.ToLower() switch
                 {
-                    "role" => employee => employee.Role,
                     "mail" => employee => employee.User.Mail,
                     "number" => employee => employee.User.Number,
+                    "role" => employee => employee.Role,
                     "personalNumber" => client => client.User.PersonalNumber,
                     _ => throw new NotImplementedException()
                 };
@@ -116,7 +150,48 @@ namespace GreatProj.Core.Repositoy
                 else
                     employeeAndUserJoinQuery = employeeAndUserJoinQuery.OrderBy(keySelector);
             }
-            List<Employee> result = await employeeAndUserJoinQuery.ToListAsync();
+            List<EmployeeDTO> result = await employeeAndUserJoinQuery.ToListAsync();
+            //Pagination
+            result = Pagination(result, input.SkipCount, input.MaxResultCount);
+            return result;
+        }
+        public virtual async Task<List<CountryDTO>> GetAllCountryAsync(GetAllCountryInput input)
+        {
+            //Filtering according input
+            IQueryable<Country> countryQuery = _db.Set<Country>().Include(t => t.Translation);
+            var mappedCountryQuery = from country in countryQuery
+                                     select new CountryDTO
+                                     {
+                                         Id = country.Id,
+                                         Code = country.Code,
+                                         Name = country.Name,
+                                         Translation = new TranslationDTO
+                                         {
+                                             Id = country.Translation.Id,
+                                             Name = country.Translation.Name,
+                                             Description = country.Translation.Description
+                                         }
+                                     };
+            if (input.Code != null)
+                mappedCountryQuery = mappedCountryQuery.Where(item => item.Code.Contains(input.Code));
+            if (input.Name != null)
+                mappedCountryQuery = mappedCountryQuery.Where(item => item.Name.Contains(input.Name));
+            //Sorting
+            if (input.Sorting != null)
+            {
+                Expression<Func<CountryDTO, object>> keySelector = input.Sorting?.ToLower() switch
+                {
+                    "code" => country => country.Code,
+                    "name" => country => country.Name,
+                    _ => throw new NotImplementedException()
+                };
+                if (!input.IsAscending)
+                    mappedCountryQuery = mappedCountryQuery.OrderByDescending(keySelector);
+                else
+                    mappedCountryQuery = mappedCountryQuery.OrderBy(keySelector);
+            }
+            List<CountryDTO> result = await mappedCountryQuery.ToListAsync();
+
             //Pagination
             result = Pagination(result, input.SkipCount, input.MaxResultCount);
             return result;

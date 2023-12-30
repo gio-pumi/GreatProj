@@ -4,9 +4,9 @@ using GreatProj.Infrastructure.Data;
 
 namespace GreatProj.Core.Repositoy
 {
-    public class EmployeeRepository<T> : BaseRepository<Employee>, IEmployeeRepository<Employee>
+    public class CountryRepository<T> : BaseRepository<Country>, ICountryRepository<Country>
     {
-        public EmployeeRepository(AppDbContext DbContext) : base(DbContext)
+        public CountryRepository(AppDbContext DbContext) : base(DbContext)
         {
         }
     }

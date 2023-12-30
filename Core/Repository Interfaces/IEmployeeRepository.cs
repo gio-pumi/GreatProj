@@ -1,5 +1,5 @@
 ﻿using GreatProj.Core.Interfaces;
-using GreatProj.Domain.Entities;
+using GreatProj.Domain.DbEntities;
 
 namespace GreatProj.Core.Repository_Interfaces
 {

@@ -1,4 +1,4 @@
-﻿namespace GreatProj.Domain.Entities
+﻿namespace GreatProj.Domain.DbEntities
 {
     public class User
     {

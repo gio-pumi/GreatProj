@@ -1,10 +1,9 @@
 ﻿using AutoMapper;
 using GreatProj.Core.Interfaces;
-using GreatProj.Core.Models.ClientDTO;
 using GreatProj.Core.Models.Employee;
 using GreatProj.Core.Models.Paging;
 using GreatProj.Core.Repository_Interfaces;
-using GreatProj.Domain.Entities;
+using GreatProj.Domain.DbEntities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GreatProj.Controllers
@@ -42,8 +41,7 @@ namespace GreatProj.Controllers
         [HttpGet]
         public async Task<PagedResultDTO<EmployeeDTO>> GetAllEmployees([FromQuery] GetAllEmployeeInput input)
         {
-            var employees = await _employeeRepository.GetAllEmployeeAsync(input);
-            var employeesDTO = _mapper.Map<List<EmployeeDTO>>(employees);
+            var employeesDTO = await _employeeRepository.GetAllEmployeeAsync(input);
             var result = new PagedResultDTO<EmployeeDTO>
             {
                 Count = employeesDTO.Count,

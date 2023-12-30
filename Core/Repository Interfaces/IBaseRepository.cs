@@ -1,17 +1,18 @@
 ﻿using GreatProj.Core.Models.Client;
+using GreatProj.Core.Models.ClientDTO;
+using GreatProj.Core.Models.Country;
 using GreatProj.Core.Models.Employee;
-using GreatProj.Domain.Entities;
 
 namespace GreatProj.Core.Interfaces
 {
     public interface IBaseRepository<T> where T : class
     {
         Task<List<T>> AddAsync(T item);
-        Task<List<Client>> GetAllClientAsync(GetAllClientInput input);
-        Task<List<Employee>> GetAllEmployeeAsync(GetAllEmployeeInput input); 
+        Task<List<ClientDTO>> GetAllClientAsync(GetAllClientInput input);
+        Task<List<EmployeeDTO>> GetAllEmployeeAsync(GetAllEmployeeInput input); 
+        Task<List<CountryDTO>> GetAllCountryAsync(GetAllCountryInput input); 
         Task<T> GetByIdAsync(long id);
         Task<List<T>> DeleteAsync(long id);
         Task<List<T>> UpdateAsync(T item);
-
     }
 }

@@ -4,7 +4,7 @@ using GreatProj.Core.Models.Client;
 using GreatProj.Core.Models.ClientDTO;
 using GreatProj.Core.Models.Paging;
 using GreatProj.Core.Repository_Interfaces;
-using GreatProj.Domain.Entities;
+using GreatProj.Domain.DbEntities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GreatProj.Controllers
@@ -28,23 +28,21 @@ namespace GreatProj.Controllers
             _userRepository = userRepository;
             _mapper = mapper;
             _userService = userService;
-
         }
 
         [HttpPost]
-        public async Task<List<ClientDTO>> AddClient(ClientDTO clientDTO)
+        public async Task<List<ClientAddDTO>> AddClient(ClientAddDTO clientDTO)
         {
             var client = _mapper.Map<Client>(clientDTO);
             var clients = await _userService.AddClient(client);
-            var clientsDTO = _mapper.Map<List<ClientDTO>>(clients);
-            return clientsDTO;
+            var clientAddDTO = _mapper.Map<List<ClientAddDTO>>(clients);
+            return clientAddDTO;
         }
 
         [HttpGet]
-        public async Task<PagedResultDTO<ClientDTO>> GetAllClients ([FromQuery] GetAllClientInput input)
+        public async Task<PagedResultDTO<ClientDTO>> GetAllClients([FromQuery] GetAllClientInput input)
         {
-            var clients = await _clientRepository.GetAllClientAsync(input);
-            var clientsDTO = _mapper.Map<List<ClientDTO>>(clients);
+            var clientsDTO = await _clientRepository.GetAllClientAsync(input);
             var result = new PagedResultDTO<ClientDTO>
             {
                 Count = clientsDTO.Count,
@@ -62,7 +60,6 @@ namespace GreatProj.Controllers
         }
 
         [HttpDelete]
-
         public async Task<List<ClientDTO>> DeleteClient(long id)
         {
             var clients = await _clientRepository.DeleteAsync(id);

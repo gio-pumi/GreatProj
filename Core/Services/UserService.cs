@@ -1,6 +1,6 @@
 ﻿using GreatProj.Core.Interfaces;
 using GreatProj.Core.Repository_Interfaces;
-using GreatProj.Domain.Entities;
+using GreatProj.Domain.DbEntities;
 using GreatProj.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 

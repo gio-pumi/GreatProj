@@ -1,4 +1,4 @@
-﻿using GreatProj.Domain.Entities;
+﻿using GreatProj.Domain.DbEntities;
 
 namespace GreatProj.Core.Interfaces
 {

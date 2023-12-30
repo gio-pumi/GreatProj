@@ -3,7 +3,7 @@ using GreatProj.Core.Interfaces;
 using GreatProj.Core.Repository_Interfaces;
 using GreatProj.Core.Repositoy;
 using GreatProj.Core.Services;
-using GreatProj.Domain.Entities;
+using GreatProj.Domain.DbEntities;
 using GreatProj.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -29,6 +29,7 @@ namespace GreatProj
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IEmployeeRepository<Employee>, EmployeeRepository<Client>>();
             builder.Services.AddScoped<IUserRepository<User>, UserRepository<User>>();
+            builder.Services.AddScoped<ICountryRepository<Country>, CountryRepository<Country>>();
 
             // Add Automaper Configuration
             builder.Services.AddAutoMapper(config => config.AddProfile<MappingProfile>());

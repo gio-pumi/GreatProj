@@ -3,7 +3,9 @@ using GreatProj.Domain.DbEntities;
 
 namespace GreatProj.Core.Repository_Interfaces
 {
-    public interface IUserRepository<T> : IBaseRepository<User>
+    public interface ICountryRepository<T> : IBaseRepository<Country>
     {
+
     }
+    
 }
