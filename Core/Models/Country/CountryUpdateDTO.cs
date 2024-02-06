@@ -1,4 +1,6 @@
-﻿namespace GreatProj.Core.Models.Country
+﻿using GreatProj.Core.Models.Translation;
+
+namespace GreatProj.Core.Models.Country
 {
     public class CountryUpdateDTO
     {
@@ -6,5 +8,6 @@
         public string? Code { get; set; }
         public string? Name { get; set; }
         public long? TranslationId { get; set; }
+        public TranslationDTO Translation { get; set; }
     }
 }

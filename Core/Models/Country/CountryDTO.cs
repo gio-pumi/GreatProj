@@ -2,7 +2,7 @@
 
 namespace GreatProj.Core.Models.Country
 {
-    public class CountryDTO
+    public class CountryDto
     {
         public long Id { get; set; }
         public string Code { get; set; }

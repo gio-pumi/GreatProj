@@ -11,10 +11,10 @@ namespace GreatProj.Controllers
     [ApiController]
     public class CountryController : ControllerBase
     {
-        private readonly ICountryRepository<Country> _countryRepository;
+        private readonly ICountryRepository<CountryDto> _countryRepository;
         private readonly IMapper _mapper;
         public CountryController(
-            ICountryRepository<Country> countryRepository,
+            ICountryRepository<CountryDto> countryRepository,
             IMapper mapper)
         {
             _countryRepository = countryRepository;
@@ -22,19 +22,18 @@ namespace GreatProj.Controllers
         }
 
         [HttpPost]
-        public async Task<List<CountryDTO>> AddCountry(CountryDTO countryDTO)
+        public async Task<List<CountryDto>> AddCountry(CountryDto countryDTO)
         {
-            var country = _mapper.Map<Country>(countryDTO);
-            var countries = await _countryRepository.AddAsync(country);
-            var countriesDTO = _mapper.Map<List<CountryDTO>>(countries);
+            var countries = await _countryRepository.AddCountryAsync(countryDTO);
+            var countriesDTO = _mapper.Map<List<CountryDto>>(countries);
             return countriesDTO;
         }
 
         [HttpGet]
-        public async Task<PagedResultDTO<CountryDTO>> GetCountries([FromQuery] GetAllCountryInput input)
+        public async Task<PagedResultDTO<CountryDto>> GetCountries([FromQuery] GetAllCountryInput input)
         {
             var countriesDTO = await _countryRepository.GetAllCountryAsync(input);
-            var result = new PagedResultDTO<CountryDTO>
+            var result = new PagedResultDTO<CountryDto>
             {
                 Count = countriesDTO.Count,
                 Items = countriesDTO
@@ -43,27 +42,27 @@ namespace GreatProj.Controllers
         }
 
         [HttpGet]
-        public async Task<CountryDTO> GetCountriesById(long id)
+        public async Task<CountryDto> GetCountriesById(long id)
         {
             var countryDTO = await _countryRepository.GetByIdAsync(id);
-            var result = _mapper.Map<CountryDTO>(countryDTO);
+            var result = _mapper.Map<CountryDto>(countryDTO);
             return result;
         }
 
         [HttpPut]
-        public async Task<List<CountryDTO>> EditCountry(CountryUpdateDTO countryDTO)
+        public async Task<List<CountryDto>> EditCountry(CountryUpdateDTO countryUpdateDto)
         {
-            var country = _mapper.Map<Country>(countryDTO);
-            var countries = await _countryRepository.UpdateAsync(country);
-            var countriesDTO = _mapper.Map<List<CountryDTO>>(countries);
+            var countryDto = _mapper.Map<Country>(countryUpdateDto);
+            var countries = await _countryRepository.UpdateAsync(countryDto);
+            var countriesDTO = _mapper.Map<List<CountryDto>>(countries);
             return countriesDTO;
         }
 
         [HttpDelete]
-        public async Task<List<CountryDTO>> DeleteCountry(long id)
+        public async Task<List<CountryDto>> DeleteCountry(long id)
         {
             var countries = await _countryRepository.DeleteAsync(id);
-            var countryDTO = _mapper.Map<List<CountryDTO>>(countries);
+            var countryDTO = _mapper.Map<List<CountryDto>>(countries);
             return countryDTO;
         }
     }

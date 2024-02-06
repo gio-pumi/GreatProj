@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GreatProj.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20231125123614_AddRelationToUser")]
-    partial class AddRelationToUser
+    [Migration("20240123181123_InitialDb")]
+    partial class InitialDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -24,7 +24,7 @@ namespace GreatProj.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
-            modelBuilder.Entity("GreatProj.Domain.Entities.Client", b =>
+            modelBuilder.Entity("GreatProj.Domain.DbEntities.Client", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -35,6 +35,9 @@ namespace GreatProj.Infrastructure.Migrations
                     b.Property<decimal>("Balance")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<long>("CountryId")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("RoomNumber")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -42,28 +45,42 @@ namespace GreatProj.Infrastructure.Migrations
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
 
-                    b.Property<long?>("UserId1")
-                        .HasColumnType("bigint");
-
-                    b.Property<long?>("UserId2")
-                        .HasColumnType("bigint");
-
                     b.HasKey("Id");
 
+                    b.HasIndex("CountryId");
+
                     b.HasIndex("UserId");
-
-                    b.HasIndex("UserId1")
-                        .IsUnique()
-                        .HasFilter("[UserId1] IS NOT NULL");
-
-                    b.HasIndex("UserId2")
-                        .IsUnique()
-                        .HasFilter("[UserId2] IS NOT NULL");
 
                     b.ToTable("Clients");
                 });
 
-            modelBuilder.Entity("GreatProj.Domain.Entities.Employee", b =>
+            modelBuilder.Entity("GreatProj.Domain.DbEntities.Country", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("TranslationId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TranslationId");
+
+                    b.ToTable("Countries");
+                });
+
+            modelBuilder.Entity("GreatProj.Domain.DbEntities.Employee", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -85,7 +102,7 @@ namespace GreatProj.Infrastructure.Migrations
                     b.ToTable("Employees");
                 });
 
-            modelBuilder.Entity("GreatProj.Domain.Entities.User", b =>
+            modelBuilder.Entity("GreatProj.Domain.DbEntities.Translation", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -93,16 +110,29 @@ namespace GreatProj.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
 
-                    b.Property<string>("ClientId")
+                    b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Translation");
+                });
+
+            modelBuilder.Entity("GreatProj.Domain.DbEntities.User", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
 
                     b.Property<DateTime>("CreateDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("EmployeeId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Mail")
                         .IsRequired()
@@ -121,43 +151,45 @@ namespace GreatProj.Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("GreatProj.Domain.Entities.Client", b =>
+            modelBuilder.Entity("GreatProj.Domain.DbEntities.Client", b =>
                 {
-                    b.HasOne("GreatProj.Domain.Entities.User", "User")
+                    b.HasOne("GreatProj.Domain.DbEntities.Country", "Country")
                         .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasForeignKey("CountryId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("GreatProj.Domain.Entities.User", null)
-                        .WithOne("Client")
-                        .HasForeignKey("GreatProj.Domain.Entities.Client", "UserId1");
+                    b.HasOne("GreatProj.Domain.DbEntities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.HasOne("GreatProj.Domain.Entities.User", null)
-                        .WithOne("Employee")
-                        .HasForeignKey("GreatProj.Domain.Entities.Client", "UserId2");
+                    b.Navigation("Country");
 
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("GreatProj.Domain.Entities.Employee", b =>
+            modelBuilder.Entity("GreatProj.Domain.DbEntities.Country", b =>
                 {
-                    b.HasOne("GreatProj.Domain.Entities.User", "User")
+                    b.HasOne("GreatProj.Domain.DbEntities.Translation", "Translation")
+                        .WithMany()
+                        .HasForeignKey("TranslationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Translation");
+                });
+
+            modelBuilder.Entity("GreatProj.Domain.DbEntities.Employee", b =>
+                {
+                    b.HasOne("GreatProj.Domain.DbEntities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("GreatProj.Domain.Entities.User", b =>
-                {
-                    b.Navigation("Client")
-                        .IsRequired();
-
-                    b.Navigation("Employee")
-                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

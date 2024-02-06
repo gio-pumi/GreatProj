@@ -1,12 +1,12 @@
 ﻿using GreatProj.Core.Interfaces;
 using GreatProj.Core.Models.Client;
-using GreatProj.Core.Models.ClientDTO;
+using GreatProj.Core.Models.ClientDto;
 using GreatProj.Core.Models.Country;
 using GreatProj.Core.Models.Employee;
 using GreatProj.Core.Models.Translation;
+using GreatProj.Core.Models.User;
 using GreatProj.Domain.DbEntities;
 using GreatProj.Infrastructure.Data;
-using GreatProj.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
@@ -34,17 +34,17 @@ namespace GreatProj.Core.Repositoy
             var items = await _db.Set<T>().ToListAsync();
             return items;
         }
-        public virtual async Task<List<ClientDTO>> GetAllClientAsync(GetAllClientInput input)
+        public virtual async Task<List<ClientDto>> GetAllClientAsync(GetAllClientInput input)
         {
             //Filtering according input
-            IQueryable<Client> clientQuery = _db.Set<Client>().Include(u => u.User);
+            IQueryable<Client> clientQuery = _db.Set<Client>().Include(c => c.Country).Include(u => u.User);
             var mappedClientQuery = from client in clientQuery
-                                    select new ClientDTO
+                                    select new ClientDto
                                     {
                                         Id = client.Id,
                                         Balance = client.Balance,
                                         RoomNumber = client.RoomNumber,
-                                        Country = new CountryDTO
+                                        Country = new CountryDto
                                         {
                                             Id = client.Country.Id,
                                             Code = client.Country.Code,
@@ -56,7 +56,7 @@ namespace GreatProj.Core.Repositoy
                                                 Description = client.Country.Translation.Description
                                             }
                                         },
-                                        User = new UserDTO
+                                        User = new UserDto
                                         {
                                             Id = client.User.Id,
                                             Mail = client.User.Mail,
@@ -80,10 +80,11 @@ namespace GreatProj.Core.Repositoy
                 mappedClientQuery = mappedClientQuery.Where(item => item.User.CreateDate >= input.StartDate);
             if (input.EndDate != null)
                 mappedClientQuery = mappedClientQuery.Where(item => item.User.CreateDate <= input.EndDate);
+
             //Sorting
             if (input.Sorting != null)
             {
-                Expression<Func<ClientDTO, object>> keySelector = input.Sorting?.ToLower() switch
+                Expression<Func<ClientDto, object>> keySelector = input.Sorting?.ToLower() switch
                 {
                     "personalNumber" => client => client.User.PersonalNumber,
                     "mail" => client => client.User.Mail,
@@ -97,7 +98,8 @@ namespace GreatProj.Core.Repositoy
                 else
                     mappedClientQuery = mappedClientQuery.OrderBy(keySelector);
             }
-            List<ClientDTO> result = await mappedClientQuery.ToListAsync();
+            List<ClientDto> result = await mappedClientQuery.ToListAsync();
+
             //Pagination
             result = Pagination(result, input.SkipCount, input.MaxResultCount);
             return result;
@@ -114,7 +116,7 @@ namespace GreatProj.Core.Repositoy
                                            {
                                                Id = emp.Id,
                                                Role = emp.Role,
-                                               User = new UserDTO
+                                               User = new UserDto
                                                {
                                                    Id = user.Id,
                                                    Mail = user.Mail,
@@ -155,12 +157,12 @@ namespace GreatProj.Core.Repositoy
             result = Pagination(result, input.SkipCount, input.MaxResultCount);
             return result;
         }
-        public virtual async Task<List<CountryDTO>> GetAllCountryAsync(GetAllCountryInput input)
+        public virtual async Task<List<CountryDto>> GetAllCountryAsync(GetAllCountryInput input)
         {
             //Filtering according input
             IQueryable<Country> countryQuery = _db.Set<Country>().Include(t => t.Translation);
             var mappedCountryQuery = from country in countryQuery
-                                     select new CountryDTO
+                                     select new CountryDto
                                      {
                                          Id = country.Id,
                                          Code = country.Code,
@@ -179,7 +181,7 @@ namespace GreatProj.Core.Repositoy
             //Sorting
             if (input.Sorting != null)
             {
-                Expression<Func<CountryDTO, object>> keySelector = input.Sorting?.ToLower() switch
+                Expression<Func<CountryDto, object>> keySelector = input.Sorting?.ToLower() switch
                 {
                     "code" => country => country.Code,
                     "name" => country => country.Name,
@@ -190,7 +192,7 @@ namespace GreatProj.Core.Repositoy
                 else
                     mappedCountryQuery = mappedCountryQuery.OrderBy(keySelector);
             }
-            List<CountryDTO> result = await mappedCountryQuery.ToListAsync();
+            List<CountryDto> result = await mappedCountryQuery.ToListAsync();
 
             //Pagination
             result = Pagination(result, input.SkipCount, input.MaxResultCount);

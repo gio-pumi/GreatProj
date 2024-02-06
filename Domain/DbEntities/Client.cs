@@ -7,7 +7,8 @@
         public User User { get; set; }
         public string RoomNumber { get; set; }
         public decimal Balance { get; set; }
-        public long CountryId  { get; set; }
-        public Country Country{ get; set; }
+        public long CountryId { get; set; }
+        public Country Country { get; set; }
+        public string Language { get; set; }
     }
 }

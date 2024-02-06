@@ -1,14 +1,18 @@
 ﻿using AutoMapper;
 using GreatProj.Core.Interfaces;
 using GreatProj.Core.Models.Client;
+using GreatProj.Core.Models.ClientDto;
 using GreatProj.Core.Models.ClientDTO;
 using GreatProj.Core.Models.Paging;
 using GreatProj.Core.Repository_Interfaces;
 using GreatProj.Domain.DbEntities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace GreatProj.Controllers
 {
+    [Authorize]
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class ClientController : ControllerBase
@@ -16,34 +20,33 @@ namespace GreatProj.Controllers
         private readonly IClientRepository<Client> _clientRepository;
         private readonly IUserRepository<User> _userRepository;
         private readonly IMapper _mapper;
-        private readonly IUserService _userService;
+        private readonly IClientService _clientService;
 
         public ClientController(
-            IClientRepository<Client> clientRepository, 
-            IUserRepository<User> userRepository, 
-            IMapper mapper, 
-            IUserService userService)
+            IClientRepository<Client> clientRepository,
+            IUserRepository<User> userRepository,
+            IMapper mapper,
+            IClientService clientService)
         {
             _clientRepository = clientRepository;
             _userRepository = userRepository;
             _mapper = mapper;
-            _userService = userService;
+            _clientService = clientService;
         }
 
         [HttpPost]
-        public async Task<List<ClientAddDTO>> AddClient(ClientAddDTO clientDTO)
+        public async Task<List<ClientDto>> AddClient(ClientAddDto clientAddDto)
         {
-            var client = _mapper.Map<Client>(clientDTO);
-            var clients = await _userService.AddClient(client);
-            var clientAddDTO = _mapper.Map<List<ClientAddDTO>>(clients);
-            return clientAddDTO;
+            var clients = await _clientService.AddClientAsync(clientAddDto);
+            var clientDto = _mapper.Map<List<ClientDto>>(clients);
+            return clientDto;
         }
 
         [HttpGet]
-        public async Task<PagedResultDTO<ClientDTO>> GetAllClients([FromQuery] GetAllClientInput input)
+        public async Task<PagedResultDTO<ClientDto>> GetAllClients([FromQuery] GetAllClientInput input)
         {
             var clientsDTO = await _clientRepository.GetAllClientAsync(input);
-            var result = new PagedResultDTO<ClientDTO>
+            var result = new PagedResultDTO<ClientDto>
             {
                 Count = clientsDTO.Count,
                 Items = clientsDTO
@@ -52,18 +55,26 @@ namespace GreatProj.Controllers
         }
 
         [HttpGet]
-        public async Task<ClientDTO> GetClientById(long id)
+        public async Task<ClientDto> GetCurrentClientInfo()
+        {
+            string userId = HttpContext.User.FindFirstValue("UserId");
+            var clientDto = await _clientRepository.GetCurrentClientInfoAsync(Convert.ToInt64(userId));
+            return clientDto;
+        }
+
+        [HttpGet]
+        public async Task<ClientDto> GetClientById(long id)
         {
             var client = await _clientRepository.GetByIdAsync(id);
-            var clientDTO = _mapper.Map<ClientDTO>(client);
+            var clientDTO = _mapper.Map<ClientDto>(client);
             return clientDTO;
         }
 
         [HttpDelete]
-        public async Task<List<ClientDTO>> DeleteClient(long id)
+        public async Task<List<ClientDto>> DeleteClient(long id)
         {
             var clients = await _clientRepository.DeleteAsync(id);
-            var clientsDTO = _mapper.Map<List<ClientDTO>>(clients);
+            var clientsDTO = _mapper.Map<List<ClientDto>>(clients);
             return clientsDTO;
         }
 
